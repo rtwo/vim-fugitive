@@ -4,7 +4,7 @@
 " GetLatestVimScripts: 2975 1 :AutoInstall: fugitive.vim
 
 if exists('g:loaded_fugitive') || &cp
-  finish
+    finish
 endif
 let g:loaded_fugitive = 1
 
@@ -2580,11 +2580,15 @@ function! s:BufReadObject() abort
           call s:ReplaceCmd(s:repo().git_command('cat-file','-p',hash))
         endif
       elseif b:fugitive_type ==# 'commit'
-        let b:fugitive_display_format = b:fugitive_display_format % 2
-        if b:fugitive_display_format
+        let b:fugitive_display_format = b:fugitive_display_format % 3
+
+        if b:fugitive_display_format == 1
           call s:ReplaceCmd(s:repo().git_command('cat-file',b:fugitive_type,hash))
+        elseif b:fugitive_display_format == 2
+          call s:ReplaceCmd(s:repo().git_command('show','--no-color','--stat=300',hash))
         else
           call s:ReplaceCmd(s:repo().git_command('show','--no-color','--pretty=format:tree %T%nparent %P%nauthor %an <%ae> %ad%ncommitter %cn <%ce> %cd%nencoding %e%n%n%s%n%n%b',hash))
+
           keepjumps call search('^parent ')
           if getline('.') ==# 'parent '
             silent keepjumps delete_
@@ -2818,6 +2822,11 @@ function! s:GF(mode) abort
       elseif expand('<cword>') =~# '^\x\{7,40\}\>'
         return s:Edit(a:mode,0,expand('<cword>'))
 
+      elseif strlen(expand('<cfile>'))
+        let dref = buffer.commit().'^:'.expand('<cfile>')
+        let ref = buffer.commit().':'.expand('<cfile>')
+        let dcmd = 'Gdiff'
+        "return s:Edit(a:mode, 0, buffer.commit() . ':' . expand('<cfile>'))
       else
         let ref = ''
       endif
